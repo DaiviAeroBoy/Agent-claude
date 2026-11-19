@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shadow Agency: Top Secret</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#050805;--panel:#0b120b;--line:#1c3a1c;--g:#39ff6a;--gd:#1f9c40;--r:#ff3b3b;--t:#cfeccf;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font-family:'Special Elite','Courier New',monospace;line-height:1.5;min-height:100vh}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px);z-index:50}
+header{padding:22px 16px 8px;text-align:center}
+h1{margin:0;font-size:clamp(28px,7vw,52px);color:var(--g);letter-spacing:.06em;animation:glitch 4s infinite}
+@keyframes glitch{0%,92%,100%{text-shadow:0 0 12px rgba(57,255,106,.5)}93%{text-shadow:3px 0 var(--r),-3px 0 #3bf;transform:translateX(2px)}95%{text-shadow:-3px 0 var(--r),3px 0 #3bf;transform:translateX(-2px)}97%{transform:none}}
+.sub{color:var(--gd);margin:4px 0 0}
+.stamp{display:inline-block;border:3px solid var(--r);color:var(--r);padding:2px 12px;transform:rotate(-4deg);margin:10px 0 0;letter-spacing:.2em}
+nav{display:flex;gap:6px;overflow-x:auto;padding:12px 12px 8px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+nav button{flex:0 0 auto}
+button,input,select,textarea{font:inherit;color:var(--t);background:var(--panel);border:1px solid var(--line);padding:9px 12px;border-radius:3px}
+button{cursor:pointer;color:var(--g);border-color:var(--gd)}
+button:hover,button.on{background:var(--g);color:#031004}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+main{max-width:760px;margin:0 auto;padding:16px}
+section{display:none}
+section.on{display:block}
+h2{color:var(--g);margin:6px 0 4px;font-size:24px}
+.note{color:#8fb08f;margin:0 0 14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.row>input,.row>select{flex:1 1 140px;min-width:0}
+textarea{width:100%;min-height:90px;resize:vertical}
+.box{border:1px dashed var(--gd);padding:12px;margin:10px 0;background:var(--panel);word-break:break-word;min-height:44px}
+canvas{max-width:100%;height:auto;border:1px solid var(--line);display:block;margin:10px 0}
+.bar{height:10px;background:#0f1f0f;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:var(--g)}
+.mis{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;margin:8px 0;background:var(--panel)}
+.mis.done{opacity:.5;text-decoration:line-through}
+.big{font-size:22px;color:var(--g)}
+.gad{border:1px solid var(--line);background:var(--panel);padding:14px;margin:14px 0}
+#fp{width:120px;height:150px;border:2px solid var(--gd);border-radius:60px 60px 40px 40px;display:grid;place-items:center;touch-action:none;user-select:none;cursor:pointer;margin:10px 0}
+#fp.scan{border-color:var(--g);box-shadow:0 0 18px var(--g)}
+.boom{animation:flash .4s infinite}
+@keyframes flash{50%{background:#400;color:#fff}}
+.ok{color:var(--g)}.bad{color:var(--r)}
+@media (prefers-reduced-motion:reduce){h1,.boom{animation:none}}
+</style>
+</head>
+<body>
+<header>
+<h1 id="ttl">SHADOW AGENCY</h1>
+<p class="sub">Your secret headquarters. Authorized agents only.</p>
+<span class="stamp">CLASSIFIED</span>
+</header>
+<nav id="nav"></nav>
+<main>
+
+<section id="hq">
+<h2>Welcome, agent</h2>
+<p class="note">You and your partner are now part of the Shadow Agency. Pick a tool from the menu above.</p>
+<div class="mis"><span class="big" id="rk">Rookie</span><span id="pts">0 points</span></div>
+<div class="bar"><i id="rkbar"></i></div>
+<p>Make your ID card, finish daily missions to rank up, send coded messages, crack the puzzle chain, test the gadgets, and lock your secrets in the vault.</p>
+</section>
+
+<section id="id">
+<h2>Agent ID card</h2>
+<p class="note">Type your name to get a codename and a classified badge. Right-click or long-press the card to save it.</p>
+<div class="row"><input id="nm" placeholder="Your real name" maxlength="20"><button id="mk">Create ID</button></div>
+<canvas id="cv" width="640" height="380"></canvas>
+</section>
+
+<section id="ms">
+<h2>Mission control</h2>
+<p class="note">Three new missions every day. Each one is worth 10 points.</p>
+<div id="mlist"></div>
+</section>
+
+<section id="ci">
+<h2>Secret messages</h2>
+<p class="note">Code a message, send it to your partner, and they decode it with the same method.</p>
+<div class="row">
+<select id="mode"><option value="caesar">Caesar cipher</option><option value="morse">Morse code</option><option value="atbash">Atbash (mirror alphabet)</option><option value="rev">Reverse</option></select>
+<input id="shift" type="number" min="1" max="25" value="3" aria-label="Caesar shift">
+</div>
+<textarea id="msg" placeholder="Write your message here"></textarea>
+<div class="row"><button id="enc">Encode</button><button id="dec">Decode</button><button id="cp">Copy result</button><button id="burn">Burn after reading</button></div>
+<div class="box" id="out">Result appears here.</div>
+</section>
+
+<section id="pz">
+<h2>Escape mission</h2>
+<p class="note">Four locks. Crack each code to open the next one.</p>
+<div id="pq"></div>
+<div class="row"><input id="pa" placeholder="Type the answer"><button id="pb">Unlock</button></div>
+<p id="pm"></p>
+</section>
+
+<section id="gd">
+<h2>Gadget lab</h2>
+<div class="gad"><b>Fingerprint scanner</b><p class="note">Press and hold for 2 seconds.</p>
+<div id="fp" role="button" tabindex="0" aria-label="Hold to scan"><svg width="70" height="90" viewBox="0 0 70 90" fill="none" stroke="#39ff6a" stroke-width="2"><path d="M10 50c0-18 11-32 25-32s25 14 25 32"/><path d="M18 56c0-14 7-24 17-24s17 10 17 24"/><path d="M26 62c0-9 4-16 9-16s9 7 9 16"/><path d="M35 58v22"/></svg></div>
+<div class="bar"><i id="fpb"></i></div><p id="fpm"></p></div>
+
+<div class="gad"><b>Lie detector</b><p class="note">Ask a question out loud, then press the button.</p>
+<button id="ld">Test the answer</button><div class="box" id="ldo">Waiting for a question.</div></div>
+
+<div class="gad"><b>Laser grid</b><p class="note">Drag the green dot from the left edge to the right edge without touching a laser.</p>
+<canvas id="lz" width="480" height="240" style="touch-action:none"></canvas><p id="lzm"></p></div>
+
+<div class="gad"><b>Self-destruct</b>
+<div class="row"><input id="sd" type="number" min="3" max="60" value="10" aria-label="Seconds"><button id="sdb">Arm</button><button id="sda">Abort</button></div>
+<div class="box big" id="sdo">Disarmed.</div></div>
+</section>
+
+<section id="vt">
+<h2>Agency vault</h2>
+<p class="note">A private board for you and your partner. Data stays in this browser only, so use the same device to share it.</p>
+<div id="vlock"></div>
+<div id="vopen" style="display:none">
+<div class="row"><input id="vn" placeholder="Post a mission or secret note"><button id="va">Post</button></div>
+<div id="vl"></div>
+</div>
+</section>
+
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const ls={g(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const tabs=[["hq","HQ"],["id","ID card"],["ms","Missions"],["ci","Cipher"],["pz","Escape"],["gd","Gadgets"],["vt","Vault"]];
+const nav=$("#nav");
+tabs.forEach(([id,n])=>{const b=document.createElement("button");b.textContent=n;b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b)});
+function show(id){document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id===id));nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===id));if(id){try{history.replaceState(null,"","#"+id)}catch(e){}}if(id==="vt")vault()}
+addEventListener("hashchange",()=>show(tabs.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):"hq"));
+
+/* ranks + missions */
+const ranks=[[0,"Rookie"],[30,"Field Agent"],[90,"Special Agent"],[180,"Director"]];
+let score=ls.g("pts",0);
+function rankUI(){let r=ranks[0],n=null;ranks.forEach((x,i)=>{if(score>=x[0]){r=x;n=ranks[i+1]||null}});$("#rk").textContent=r[1];$("#pts").textContent=score+" points";$("#rkbar").style.width=(n?Math.min(100,(score-r[0])/(n[0]-r[0])*100):100)+"%"}
+const M=["Observe three strangers and note what shoes they wear.","Walk a full minute without being noticed looking at your phone.","Memorize a license plate and repeat it an hour later.","Use a secret code word in a normal conversation.","Find five exits in the next room you enter.","Send your partner one coded message.","Take a different route home and map it in your head.","Watch a crowd and guess who is the most nervous.","Hide a tiny clue for your partner to find.","Sit somewhere for 5 minutes and list every sound you hear.","Remember what the last three people you talked to wore.","Memorize a new fact about a place nearby."];
+const day=Math.floor(Date.now()/864e5);
+const todays=[0,1,2].map(i=>(day*3+i*5)%M.length);
+let doneM=ls.g("done"+day,[]);
+function missions(){const l=$("#mlist");l.innerHTML="";todays.forEach(i=>{const d=doneM.includes(i);const e=document.createElement("div");e.className="mis"+(d?" done":"");e.innerHTML="<span style='flex:1'>"+M[i]+"</span>";const b=document.createElement("button");b.textContent=d?"Done":"Complete";b.disabled=d;b.onclick=()=>{doneM.push(i);ls.s("done"+day,doneM);score+=10;ls.s("pts",score);missions();rankUI()};e.appendChild(b);l.appendChild(e)})}
+
+/* ID card */
+function hash(s){let h=5381;for(const c of s)h=(h*33+c.charCodeAt(0))>>>0;return h}
+function card(){
+ const name=($("#nm").value.trim()||"UNKNOWN").toUpperCase(),h=hash(name);
+ const A=["SHADOW","FALCON","GHOST","VIPER","NIGHT","COBRA","ECHO","RAVEN"],B=["FOX","BLADE","STORM","LYNX","WOLF","SPARROW","CIPHER","HAWK"],R=["FIELD AGENT","SPECIAL AGENT","OPERATIVE","DIRECTOR"];
+ const code=A[h%8]+" "+B[(h>>3)%8],rank=R[(h>>6)%4],num="AGT-"+(1000+h%9000);
+ const c=$("#cv"),x=c.getContext("2d");
+ x.fillStyle="#08100a";x.fillRect(0,0,640,380);
+ x.strokeStyle="#39ff6a";x.lineWidth=4;x.strokeRect(10,10,620,360);
+ x.fillStyle="#39ff6a";x.fillRect(10,10,620,54);
+ x.fillStyle="#031004";x.font="26px 'Special Elite','Courier New',monospace";x.fillText("SHADOW AGENCY  -  AGENT ID",28,46);
+ x.strokeStyle="#1f9c40";x.lineWidth=2;x.strokeRect(34,92,170,210);
+ x.fillStyle="#1f9c40";x.beginPath();x.arc(119,170,38,0,7);x.fill();x.beginPath();x.ellipse(119,290,66,58,0,Math.PI,0);x.fill();
+ x.fillStyle="#cfeccf";x.font="20px 'Special Elite','Courier New',monospace";
+ x.fillText("NAME",236,112);x.fillText("CODENAME",236,172);x.fillText("RANK",236,232);
+ x.fillStyle="#39ff6a";x.font="28px 'Special Elite','Courier New',monospace";
+ x.fillText(name.slice(0,16),236,142);x.fillText(code,236,202);x.fillText(rank,236,262);
+ x.fillStyle="#8fb08f";x.font="18px 'Special Elite','Courier New',monospace";x.fillText(num+"  |  CLEARANCE: TOP SECRET",34,342);
+ x.save();x.translate(470,320);x.rotate(-.25);x.strokeStyle="#ff3b3b";x.fillStyle="#ff3b3b";x.lineWidth=4;x.strokeRect(-100,-26,200,50);x.font="30px 'Special Elite','Courier New',monospace";x.textAlign="center";x.fillText("CLASSIFIED",0,10);x.restore();
+}
+$("#mk").onclick=card;card();
+
+/* cipher */
+const MC={A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",0:"-----",1:".----",2:"..---",3:"...--",4:"....-",5:".....",6:"-....",7:"--...",8:"---..",9:"----."};
+const RM=Object.fromEntries(Object.entries(MC).map(([k,v])=>[v,k]));
+function caesar(t,s){return t.replace(/[a-z]/gi,c=>{const b=c<="Z"?65:97;return String.fromCharCode((c.charCodeAt(0)-b+s+26*10)%26+b)})}
+function atbash(t){return t.replace(/[a-z]/gi,c=>{const b=c<="Z"?65:97;return String.fromCharCode(b+25-(c.charCodeAt(0)-b))})}
+function run(dec){
+ const t=$("#msg").value,m=$("#mode").value,s=parseInt($("#shift").value)||3;
+ if(m==="caesar")return caesar(t,dec?-s:s);
+ if(m==="atbash")return atbash(t);
+ if(m==="rev")return [...t].reverse().join("");
+ if(dec)return t.trim().split(/\s*\/\s*/).map(w=>w.split(/\s+/).map(c=>RM[c]||"?").join("")).join(" ");
+ return t.toUpperCase().split(/\s+/).map(w=>[...w].map(c=>MC[c]||"").join(" ")).join(" / ");
+}
+$("#enc").onclick=()=>{$("#out").textContent=run(false)||"Write a message first."};
+$("#dec").onclick=()=>{$("#out").textContent=run(true)||"Write a message first."};
+$("#cp").onclick=async()=>{try{await navigator.clipboard.writeText($("#out").textContent);$("#cp").textContent="Copied"}catch(e){$("#cp").textContent="Select and copy by hand"}setTimeout(()=>$("#cp").textContent="Copy result",1500)};
+let bt;
+$("#burn").onclick=()=>{clearInterval(bt);const r=run(true);if(!r)return;let n=10;$("#msg").value="";const o=$("#out");const f=()=>{o.innerHTML="<span class='ok'>"+r.replace(/</g,"&lt;")+"</span><br><span class='bad'>This message burns in "+n+"s</span>"};f();bt=setInterval(()=>{n--;if(n<=0){clearInterval(bt);o.textContent="Message destroyed.";}else f()},1000)};
+
+/* puzzle chain */
+const P=[["Lock 1: Caesar code, shifted by 3. Decode it: <b class='big'>VKDGRZ</b>","SHADOW"],["Lock 2: Morse code. Decode it: <b class='big'>... . -.-. .-. . -</b>","SECRET"],["Lock 3: I speak without a mouth and hear without ears. What am I?","ECHO"],["Lock 4: The word is written backwards: <b class='big'>NOCLAF</b>","FALCON"]];
+let lv=ls.g("lv",0);
+function pz(){if(lv>=P.length){$("#pq").innerHTML="<p class='big ok'>MISSION COMPLETE</p><p>You cracked every lock. The Agency salutes you, agent.</p>";$("#pa").parentNode.style.display="none";return}$("#pa").parentNode.style.display="";$("#pq").innerHTML="<div class='box'>"+P[lv][0]+"</div>"}
+$("#pb").onclick=()=>{const a=$("#pa").value.trim().toUpperCase();if(a===P[lv][1]){lv++;ls.s("lv",lv);$("#pa").value="";$("#pm").innerHTML="<span class='ok'>Lock opened.</span>";score+=15;ls.s("pts",score);rankUI();pz()}else $("#pm").innerHTML="<span class='bad'>Access denied. Try again.</span>"};
+$("#pa").addEventListener("keydown",e=>{if(e.key==="Enter")$("#pb").click()});
+
+/* gadgets: fingerprint */
+let ft,fs;
+const fp=$("#fp");
+function fpStart(e){e.preventDefault();fs=Date.now();fp.classList.add("scan");$("#fpm").textContent="Scanning...";clearInterval(ft);ft=setInterval(()=>{const p=Math.min(1,(Date.now()-fs)/2000);$("#fpb").style.width=p*100+"%";if(p>=1){clearInterval(ft);fp.classList.remove("scan");$("#fpm").innerHTML="<span class='ok'>ACCESS GRANTED. Welcome back, agent.</span>"}},40)}
+function fpEnd(){if(!ft)return;if(Date.now()-fs<2000){clearInterval(ft);fp.classList.remove("scan");$("#fpb").style.width="0";$("#fpm").innerHTML="<span class='bad'>SCAN FAILED. Hold longer.</span>"}ft=null}
+fp.addEventListener("pointerdown",fpStart);addEventListener("pointerup",fpEnd);fp.addEventListener("pointercancel",fpEnd);
+/* lie detector */
+$("#ld").onclick=()=>{const o=$("#ldo"),b=$("#ld");b.disabled=true;let n=0;const t=setInterval(()=>{o.textContent="Analyzing "+"|".repeat(1+n++%12);if(n>14){clearInterval(t);const lie=Math.random()<.5;o.innerHTML=lie?"<span class='bad'>LIE DETECTED</span>":"<span class='ok'>TRUTH CONFIRMED</span>";b.disabled=false}},120)};
+/* laser grid */
+const lz=$("#lz"),lx=lz.getContext("2d");let px=14,py=120,drag=false,lt=0,alive=true;
+const bars=[[90,0.9,0],[170,1.3,60],[250,0.7,120],[330,1.1,30],[410,1.5,90]];
+function lpos(e){const r=lz.getBoundingClientRect();return[(e.clientX-r.left)*480/r.width,(e.clientY-r.top)*240/r.height]}
+lz.addEventListener("pointerdown",e=>{const[x,y]=lpos(e);if(x<50){drag=true;lz.setPointerCapture(e.pointerId);$("#lzm").textContent=""}});
+lz.addEventListener("pointermove",e=>{if(drag){[px,py]=lpos(e)}});
+lz.addEventListener("pointerup",()=>{if(drag&&px<440){px=14;py=120}drag=false});
+function reset(msg){px=14;py=120;drag=false;$("#lzm").innerHTML="<span class='bad'>"+msg+"</span>"}
+function laser(ts){lt=ts/1000;lx.fillStyle="#050805";lx.fillRect(0,0,480,240);
+ lx.fillStyle="rgba(57,255,106,.12)";lx.fillRect(0,0,50,240);lx.fillRect(440,0,40,240);
+ bars.forEach(([x,sp,ph])=>{const y=120+Math.sin(lt*sp+ph)*80,top=y-60,bot=y+60;lx.fillStyle="#ff3b3b";lx.shadowColor="#ff3b3b";lx.shadowBlur=10;lx.fillRect(x-3,0,6,Math.max(0,top-0));lx.fillRect(x-3,bot,6,240-bot);lx.shadowBlur=0;
+  if(drag&&Math.abs(px-x)<9&&(py<top||py>bot))reset("ALARM. You touched a laser. Start again.")});
+ if(drag&&px>=440){drag=false;px=14;py=120;$("#lzm").innerHTML="<span class='ok'>You made it through. Stealth master.</span>";score+=20;ls.s("pts",score);rankUI()}
+ lx.fillStyle="#39ff6a";lx.beginPath();lx.arc(px,py,9,0,7);lx.fill();
+ requestAnimationFrame(laser)}
+requestAnimationFrame(laser);
+/* self destruct */
+let st;
+$("#sdb").onclick=()=>{clearInterval(st);let n=Math.max(3,Math.min(60,parseInt($("#sd").value)||10));const o=$("#sdo");o.classList.remove("boom");o.textContent="T-minus "+n;st=setInterval(()=>{n--;if(n<=0){clearInterval(st);o.classList.add("boom");o.textContent="BOOM. This site has self-destructed. (Just kidding.)"}else o.textContent="T-minus "+n},1000)};
+$("#sda").onclick=()=>{clearInterval(st);const o=$("#sdo");o.classList.remove("boom");o.textContent="Disarmed."};
+
+/* vault */
+function vault(){
+ const pw=ls.g("vpw",null),lk=$("#vlock");$("#vopen").style.display="none";lk.style.display="";
+ lk.innerHTML="<p class='note'>"+(pw?"Enter your agency password.":"First time here. Choose a password for your vault.")+"</p><div class='row'><input id='vp' type='password' placeholder='Password'><button id='vg'>"+(pw?"Unlock":"Set password")+"</button></div><p id='vm'></p>";
+ $("#vg").onclick=()=>{const v=$("#vp").value;if(!v)return;if(!pw){ls.s("vpw",v);open()}else if(v===pw)open();else $("#vm").innerHTML="<span class='bad'>Wrong password.</span>"};
+}
+function open(){$("#vlock").style.display="none";$("#vopen").style.display="";board()}
+function board(){const l=$("#vl"),n=ls.g("notes",[]);l.innerHTML="";if(!n.length)l.innerHTML="<p class='note'>The board is empty. Post your first secret.</p>";n.forEach((t,i)=>{const d=document.createElement("div");d.className="mis";const s=document.createElement("span");s.style.flex="1";s.textContent=t;const b=document.createElement("button");b.textContent="Burn";b.onclick=()=>{n.splice(i,1);ls.s("notes",n);board()};d.append(s,b);l.appendChild(d)})}
+$("#va").onclick=()=>{const v=$("#vn").value.trim();if(!v)return;const n=ls.g("notes",[]);n.unshift(v);ls.s("notes",n);$("#vn").value="";board()};
+
+rankUI();missions();pz();
+show(tabs.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):"hq");
+</script>
+</body>
+</html>
